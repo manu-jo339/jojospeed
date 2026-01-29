@@ -7,8 +7,7 @@ services:
     rootDir: api
     buildCommand: npm install
     startCommand: npm start
-
-  - type: static_site
+  - type: static
     name: jojospeed
     rootDir: web
     staticPublishPath: public
