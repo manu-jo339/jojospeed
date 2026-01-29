@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>JojoSpeed — Speed Test</title>
+
+  <!-- Tech fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#07070B;
+      --panel:#11111A;
+      --panel2:#0D0D14;
+      --text:#ECECF6;
+      --muted:#9AA0AA;
+      --red:#FF2D2D;
+      --red2:#B00020;
+      --ok:#50FFA0;
+      --border: rgba(255,255,255,.10);
+      --glass: rgba(18,18,26,.62);
+      --glow: 0 0 18px rgba(255,45,45,.30);
+      --glow2: 0 0 42px rgba(255,45,45,.22);
+      --shadow: 0 20px 70px rgba(0,0,0,.45);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:var(--text);
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      overflow:hidden;
+      background:
+        radial-gradient(1000px 800px at 50% 0%, rgba(255,45,45,.16), transparent 60%),
+        radial-gradient(900px 600px at 80% 60%, rgba(255,45,45,.10), transparent 62%),
+        radial-gradient(700px 500px at 10% 90%, rgba(255,45,45,.06), transparent 60%),
+        var(--bg);
+    }
+    /* Grid */
+    body::before{
+      content:"";
+      position:fixed; inset:-2px;
+      background:
+        linear-gradient(to right, rgba(255,255,255,.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,.04) 1px, transparent 1px);
+      background-size: 44px 44px;
+      opacity:.14;
+      mask-image: radial-gradient(circle at 50% 30%, rgba(0,0,0,1), rgba(0,0,0,.25) 55%, transparent 74%);
+      pointer-events:none;
+    }
+    /* Scanlines */
+    body::after{
+      content:"";
+      position:fixed; inset:0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255,255,255,.06),
+        rgba(255,255,255,.06) 1px,
+        transparent 1px,
+        transparent 6px
+      );
+      opacity:.05;
+      pointer-events:none;
+      mix-blend-mode: overlay;
+    }
+
+    .wrap{
+      width:min(960px, 92vw);
+      display:grid;
+      gap:16px;
+    }
+
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      padding:14px 16px;
+      border:1px solid var(--border);
+      border-radius:18px;
+      background: linear-gradient(180deg, rgba(17,17,26,.80), rgba(7,7,11,.45));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .brand{ display:flex; align-items:center; gap:12px; }
+    .logo{
+      width:40px; height:40px;
+      border-radius:14px;
+      border:1px solid rgba(255,45,45,.40);
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255,45,45,.95), rgba(255,45,45,.18) 58%, rgba(0,0,0,0) 62%),
+        linear-gradient(180deg, rgba(255,45,45,.20), rgba(255,45,45,.06));
+      box-shadow: var(--glow);
+      position:relative;
+      overflow:hidden;
+    }
+    .logo::before{
+      content:"";
+      position:absolute; inset:-65%;
+      background: conic-gradient(from 90deg, transparent, rgba(255,45,45,.35), transparent);
+      animation: spin 5s linear infinite;
+      opacity:.85;
+    }
+    @keyframes spin { to { transform: rotate(360deg);} }
+
+    .brand h1{
+      margin:0;
+      font-size:16px;
+      font-weight:900;
+      letter-spacing:.2px;
+    }
+    .brand small{
+      display:block;
+      margin-top:2px;
+      font-family: "JetBrains Mono", monospace;
+      color:var(--muted);
+      font-weight:700;
+      font-size:11px;
+    }
+
+    .status{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-family:"JetBrains Mono", monospace;
+      color:rgba(236,236,246,.82);
+      font-size:12px;
+    }
+    .dot{
+      width:9px; height:9px; border-radius:999px;
+      background: rgba(255,255,255,.20);
+      box-shadow: 0 0 0 4px rgba(255,255,255,.04);
+    }
+    .dot.ok{
+      background: rgba(80,255,160,.95);
+      box-shadow: 0 0 0 4px rgba(80,255,160,.10);
+    }
+    .dot.run{
+      background: rgba(255,45,45,.95);
+      box-shadow: 0 0 0 4px rgba(255,45,45,.14);
+    }
+
+    main{
+      border:1px solid var(--border);
+      border-radius:22px;
+      background: linear-gradient(180deg, rgba(17,17,26,.78), rgba(7,7,11,.40));
+      padding:22px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .radar{
+      position:absolute;
+      inset:-22%;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255,45,45,.14), transparent 56%),
+        radial-gradient(circle at 50% 50%, rgba(255,45,45,.10), transparent 38%),
+        radial-gradient(circle at 50% 50%, rgba(255,45,45,.08), transparent 22%),
+        radial-gradient(circle at 50% 50%, rgba(255,45,45,.05), transparent 14%);
+      opacity:0;
+      transform: scale(.98);
+      transition: opacity .35s ease;
+      pointer-events:none;
+      filter: saturate(1.2);
+    }
+    .radar.on{
+      opacity:1;
+      animation: pulse 1.55s ease-in-out infinite;
+    }
+    @keyframes pulse{
+      0%,100%{ transform: scale(.98); filter: blur(.0px); }
+      50%{ transform: scale(1.02); filter: blur(.3px); }
+    }
+
+    .grid{
+      display:grid;
+      gap:16px;
+      grid-template-columns: 1.15fr .85fr;
+    }
+    @media (max-width: 780px){ .grid{ grid-template-columns:1fr; } }
+
+    .hero{
+      border:1px solid rgba(255,45,45,.18);
+      border-radius:18px;
+      padding:18px 18px 14px;
+      background: linear-gradient(180deg, rgba(255,45,45,.08), rgba(255,45,45,.02));
+      position:relative;
+      overflow:hidden;
+    }
+
+    .hero::before{
+      content:"";
+      position:absolute; inset:-1px;
+      background: radial-gradient(circle at 20% 20%, rgba(255,45,45,.16), transparent 45%);
+      opacity:.8;
+      pointer-events:none;
+    }
+
+    .label{
+      font-family:"JetBrains Mono", monospace;
+      font-size:12px;
+      color:var(--muted);
+      letter-spacing:.4px;
+    }
+
+    .speed{
+      margin:10px 0 2px;
+      font-size:74px;
+      font-weight:950;
+      letter-spacing:-1px;
+      text-shadow: var(--glow2);
+    }
+    .unit{
+      font-family:"JetBrains Mono", monospace;
+      color:rgba(236,236,246,.78);
+      font-size:12px;
+    }
+
+    .controls{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      margin-top:16px;
+    }
+
+    .btn{
+      border:1px solid rgba(255,45,45,.36);
+      background: linear-gradient(180deg, rgba(255,45,45,.24), rgba(255,45,45,.07));
+      color:var(--text);
+      padding:12px 14px;
+      border-radius:14px;
+      font-weight:900;
+      letter-spacing:.2px;
+      cursor:pointer;
+      box-shadow: var(--glow);
+      transition: transform .08s ease, filter .18s ease;
+    }
+    .btn:hover{ filter: brightness(1.06); }
+    .btn:active{ transform: translateY(1px); }
+    .btn[disabled]{ opacity:.55; cursor:not-allowed; filter: grayscale(.2); }
+
+    .btn.ghost{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(17,17,26,.35);
+      box-shadow:none;
+      font-weight:800;
+      color:rgba(236,236,246,.88);
+    }
+
+    .side{
+      display:grid;
+      gap:12px;
+    }
+
+    .card{
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:16px;
+      padding:14px 14px 12px;
+      background: linear-gradient(180deg, rgba(17,17,26,.55), rgba(13,13,20,.32));
+    }
+    .kv{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      align-items:end;
+      gap:8px;
+      margin-top:8px;
+    }
+    .kv b{
+      font-family:"JetBrains Mono", monospace;
+      font-size:18px;
+      color:rgba(236,236,246,.92);
+    }
+    .kv span{
+      font-family:"JetBrains Mono", monospace;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    details{
+      margin-top:14px;
+      padding-top:12px;
+      border-top:1px dashed rgba(255,255,255,.12);
+    }
+    summary{
+      cursor:pointer;
+      list-style:none;
+      font-family:"JetBrains Mono", monospace;
+      font-size:12px;
+      color:rgba(236,236,246,.88);
+    }
+    summary::-webkit-details-marker{ display:none; }
+
+    .foot{
+      margin-top:12px;
+      font-size:12px;
+      color:rgba(154,160,170,.88);
+      line-height:1.45;
+    }
+    code{
+      font-family:"JetBrains Mono", monospace;
+      background: rgba(255,255,255,.06);
+      padding:2px 6px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .hint{
+      margin-top:12px;
+      font-family:"JetBrains Mono", monospace;
+      font-size:11px;
+      color:rgba(154,160,170,.82);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>JojoSpeed</h1>
+          <small>FAST • TECH • REDLINE</small>
+        </div>
+      </div>
+
+      <div class="status">
+        <div class="dot" id="dot"></div>
+        <span id="state">BOOT</span>
+      </div>
+    </header>
+
+    <main>
+      <div class="radar" id="radar"></div>
+
+      <div class="grid">
+        <section class="hero">
+          <div class="label">DOWNLOAD</div>
+          <div class="speed" id="down">—</div>
+          <div class="unit">Mbps</div>
+
+          <div class="controls">
+            <button class="btn" id="start">DÉMARRER</button>
+            <button class="btn ghost" id="reset">RESET</button>
+          </div>
+
+          <details>
+            <summary>Afficher les détails</summary>
+            <div class="foot" id="details">Ping: — ms • Jitter: — ms • Upload: — Mbps</div>
+            <div class="foot">API: <code id="apiUrl">—</code></div>
+            <div class="hint">> tips: en gratuit, le serveur peut “dormir”. JojoSpeed le réveille automatiquement.</div>
+          </details>
+        </section>
+
+        <aside class="side">
+          <div class="card">
+            <div class="label">PING</div>
+            <div class="kv"><b id="ping">—</b><span>ms</span></div>
+          </div>
+          <div class="card">
+            <div class="label">JITTER</div>
+            <div class="kv"><b id="jitter">—</b><span>ms</span></div>
+          </div>
+          <div class="card">
+            <div class="label">UPLOAD</div>
+            <div class="kv"><b id="up">—</b><span>Mbps</span></div>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <script src="./config.js"></script>
+  <script>
+    const API = (window.JOJO_API_BASE || "http://localhost:3000").replace(/\/+$/,'');
+    document.getElementById("apiUrl").textContent = API;
+
+    const $ = (id) => document.getElementById(id);
+    const downEl = $("down"), upEl = $("up"), pingEl = $("ping"), jitterEl = $("jitter");
+    const dot = $("dot"), stateEl = $("state"), radar = $("radar"), detailsEl = $("details");
+    const startBtn = $("start"), resetBtn = $("reset");
+
+    // Free-tier friendly calibration (reduce bandwidth burn)
+    const CFG = {
+      wakeTimeoutMs: 70000,      // up to 70s for cold-start
+      pingSamples: 14,
+      download: { durationMs: 8000, parallel: 5, requestSize: 15_000_000 }, // 15MB chunks
+      upload:   { durationMs: 5000, parallel: 2, chunkMB: 4 }               // 4MB chunks
+    };
+
+    function setState(label, mode="ready"){
+      stateEl.textContent = label;
+      dot.className = "dot" + (mode === "ok" ? " ok" : mode === "run" ? " run" : "");
+      radar.classList.toggle("on", mode === "run");
+    }
+
+    function mbps(bytes, seconds){ return (bytes * 8) / seconds / 1e6; }
+    function fmt(n, d=1){ return Number.isFinite(n) ? n.toFixed(d) : "—"; }
+
+    function resetUI(){
+      downEl.textContent = "—";
+      upEl.textContent = "—";
+      pingEl.textContent = "—";
+      jitterEl.textContent = "—";
+      detailsEl.textContent = "Ping: — ms • Jitter: — ms • Upload: — Mbps";
+      setState("READY", "ready");
+    }
+
+    resetBtn.addEventListener("click", resetUI);
+
+    async function wakeApi(timeoutMs){
+      const end = Date.now() + timeoutMs;
+      while(Date.now() < end){
+        try{
+          const r = await fetch(API + "/ping?wake=" + Math.random(), { cache:"no-store" });
+          if(r.ok) return true;
+        } catch {}
+        await new Promise(r => setTimeout(r, 1200));
+      }
+      return false;
+    }
+
+    async function pingSamples(samples){
+      const times = [];
+      for(let i=0;i<samples;i++){
+        const t0 = performance.now();
+        await fetch(API + "/ping?x=" + Math.random(), { cache: "no-store" });
+        times.push(performance.now() - t0);
+      }
+      const avg = times.reduce((a,b)=>a+b,0)/times.length;
+      const mean = avg;
+      const variance = times.reduce((a,t)=>a + Math.pow(t-mean,2), 0) / times.length;
+      const jitter = Math.sqrt(variance);
+      return { ping: avg, jitter };
+    }
+
+    async function downloadTest({durationMs, parallel, requestSize}){
+      const controller = new AbortController();
+      const endAt = performance.now() + durationMs;
+      let bytes = 0;
+
+      async function worker(){
+        while(performance.now() < endAt){
+          const url = API + `/download?size=${requestSize}&x=${Math.random()}`;
+          const res = await fetch(url, { cache:"no-store", signal: controller.signal });
+          const reader = res.body.getReader();
+
+          while(true){
+            const {value, done} = await reader.read();
+            if(done) break;
+            bytes += value.byteLength;
+
+            const elapsed = (durationMs - Math.max(0, endAt - performance.now()))/1000;
+            if(elapsed > 0.7) downEl.textContent = fmt(mbps(bytes, elapsed), 1);
+
+            if(performance.now() >= endAt){
+              try{ controller.abort(); }catch(e){}
+              break;
+            }
+          }
+        }
+      }
+
+      await Promise.all(Array.from({length: parallel}, worker));
+      return mbps(bytes, durationMs/1000);
+    }
+
+    async function uploadTest({durationMs, parallel, chunkMB}){
+      const endAt = performance.now() + durationMs;
+      let bytes = 0;
+      const chunk = new Uint8Array(chunkMB * 1024 * 1024);
+
+      async function worker(){
+        while(performance.now() < endAt){
+          const res = await fetch(API + "/upload?x=" + Math.random(), {
+            method: "POST",
+            body: chunk,
+            cache: "no-store"
+          });
+          if(!res.ok) break;
+
+          bytes += chunk.byteLength;
+          const elapsed = (durationMs - Math.max(0, endAt - performance.now()))/1000;
+          if(elapsed > 0.7) upEl.textContent = fmt(mbps(bytes, elapsed), 1);
+        }
+      }
+
+      await Promise.all(Array.from({length: parallel}, worker));
+      return mbps(bytes, durationMs/1000);
+    }
+
+    startBtn.addEventListener("click", async () => {
+      startBtn.disabled = true;
+      resetBtn.disabled = true;
+      resetUI();
+
+      try{
+        setState("WAKE…", "run");
+        const ok = await wakeApi(CFG.wakeTimeoutMs);
+        if(!ok){
+          setState("API OFFLINE", "ready");
+          return;
+        }
+
+        setState("PING…", "run");
+        const p = await pingSamples(CFG.pingSamples);
+        pingEl.textContent = Math.round(p.ping);
+        jitterEl.textContent = Math.round(p.jitter);
+
+        setState("DOWNLOAD…", "run");
+        const down = await downloadTest(CFG.download);
+        downEl.textContent = fmt(down, 1);
+
+        setState("UPLOAD…", "run");
+        const up = await uploadTest(CFG.upload);
+        upEl.textContent = fmt(up, 1);
+
+        detailsEl.textContent = `Ping: ${Math.round(p.ping)} ms • Jitter: ${Math.round(p.jitter)} ms • Upload: ${fmt(up,1)} Mbps`;
+        setState("DONE", "ok");
+      } catch (e) {
+        console.error(e);
+        setState("ERROR", "ready");
+      } finally {
+        startBtn.disabled = false;
+        resetBtn.disabled = false;
+      }
+    });
+
+    // Boot check (so UI shows if API reachable)
+    (async () => {
+      try{
+        await fetch(API + "/ping?boot=" + Math.random(), { cache:"no-store" });
+        setState("READY", "ok");
+      } catch {
+        setState("API OFFLINE", "ready");
+      }
+    })();
+  </script>
+</body>
+</html>

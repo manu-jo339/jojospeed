@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: jojospeed-api
+    env: node
+    plan: free
+    region: frankfurt
+    rootDir: api
+    buildCommand: npm install
+    startCommand: npm start
+
+  - type: static_site
+    name: jojospeed
+    rootDir: web
+    staticPublishPath: public
